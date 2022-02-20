@@ -31,6 +31,51 @@ make sure that you retrieve the times using sufficient precision (e.g., in micro
                                           (v)  signature verification for both files
 '''
 
+import binascii
+from cryptography.fernet import Fernet
+import filecmp
+import base64
 import os 
 
-print("Hello2")
+def createsmallfile(filename):
+   '''Creates small file'''
+   f = open(filename,"wb")
+   f.seek(1048576)
+   f.write(b"\0")
+   f.close()
+
+def createlargefile(filename):
+   '''Creates large file'''
+   f = open(filename,"wb")
+   f.seek(10485760)
+   f.write(b"\0")
+   f.close()
+
+def comparefiles(file1,file2):
+   '''Compares two files'''
+   filecmp.clear_cache()
+   print(filecmp.cmp(file1,file2,shallow=True))
+
+def generatekey(keysize):
+   '''
+   Generates keys 
+   16 bytes = 128 bit key
+   32 bytes = 256 bit key
+
+   '''
+   # key = base64.urlsafe_b64encode(os.urandom(keysize))
+   key = os.urandom(keysize)
+   return key
+
+if __name__=='__main__':
+   smallfilename='smallfile.txt'
+   largefilename='largefile.txt'
+
+   # createsmallfile(smallfilename)
+   # createsmallfile('smallfile1.txt')
+   # createlargefile(largefilename)
+   # comparefiles(smallfilename,'smallfile1.txt')
+   key = generatekey(16)
+   print(binascii.hexlify(key))
+
+   os.stat("largefile.txt").st_size
