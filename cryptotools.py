@@ -32,7 +32,8 @@ make sure that you retrieve the times using sufficient precision (e.g., in micro
 '''
 
 import binascii
-from cryptography.fernet import Fernet
+from operator import le
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 import filecmp
 import base64
 import os 
@@ -54,7 +55,9 @@ def createlargefile(filename):
 def comparefiles(file1,file2):
    '''Compares two files'''
    filecmp.clear_cache()
-   print(filecmp.cmp(file1,file2,shallow=True))
+   if (filecmp.cmp(file1,file2,shallow=True)):
+      print(f'The files {file1} and {file2} are verified')
+   # print(filecmp.cmp(file1,file2,shallow=True))
 
 def generatekey(keysize):
    '''
@@ -67,15 +70,64 @@ def generatekey(keysize):
    key = os.urandom(keysize)
    return key
 
-if __name__=='__main__':
-   smallfilename='smallfile.txt'
-   largefilename='largefile.txt'
+def AES_CBC(key,inputFile,outputfile):
+   '''Encrypts the file using AES_CBC mode'''
+   ##Opening the file and loading the original contents
+   with open(inputFile, 'rb') as file:
+      original = file.read()
+      length = 16 - (len(original)%16)
+      original += bytes([length])*length
+      file.close()
 
-   # createsmallfile(smallfilename)
+   ##Generating IV and encrypting the file contents
+   iv = os.urandom(16)
+   cipher = Cipher(algorithms.AES(key),modes.CBC(iv))
+   encryptor = cipher.encryptor()
+   ct = encryptor.update(original) + encryptor.finalize()
+ 
+   ##Writing the encrypted contents into the file
+   with open(outputfile, 'wb') as file:   
+      file.write(ct)
+      file.close()
+   print(f"The file {inputFile} has been encrypted and contents stored to {outputfile}")
+
+   ##Opening the file and loading the encrypted contents
+   with open(outputfile, 'rb') as file:
+      encrypted = file.read()
+      file.close()
+
+   ##Decrypting the file contents
+   decryptor = cipher.decryptor()
+   pt = decryptor.update(encrypted) + decryptor.finalize()
+   pt = pt[:-pt[-length]]
+ 
+   ##Writing the decrypted file contents into the file
+   with open(outputfile,'wb') as file:
+      file.write(pt)
+      file.close()
+   print(f"The file {outputfile} has been decrypted")
+
+
+def AES_CTR():
+   pass
+
+if __name__=='__main__':
+   smallfile='smallfile.txt'
+   newsmallfile = 'newsmallfile.txt'
+   largefile='largefile.txt'
+   newlargefile='newlargefile.txt'
+
+   createsmallfile(smallfile)
    # createsmallfile('smallfile1.txt')
-   # createlargefile(largefilename)
+   createlargefile(largefile)
    # comparefiles(smallfilename,'smallfile1.txt')
    key = generatekey(16)
-   print(binascii.hexlify(key))
+   print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
 
+   
+   AES_CBC(key,smallfile,newsmallfile)
+   comparefiles(smallfile,newsmallfile)
+
+   AES_CBC(key,largefile,newlargefile)
+   comparefiles(largefile,newlargefile)
    os.stat("largefile.txt").st_size
