@@ -76,36 +76,37 @@ def generatekey(keysize):
 
 def AES_CBC(key,inputFile,outputfile):
    '''Encrypts the file using AES_CBC mode'''
-   ##Opening the file and loading the original contents
+
+   ## Opening the file and loading the original contents
    with open(inputFile, 'rb') as file:
       original = file.read()
       length = 16 - (len(original)%16)
       original += bytes([length])*length
       file.close()
 
-   ##Generating IV and encrypting the file contents
+   ## Generating IV and encrypting the file contents
    iv = os.urandom(16)
    cipher = Cipher(algorithms.AES(key),modes.CBC(iv))
    encryptor = cipher.encryptor()
    ct = encryptor.update(original) + encryptor.finalize()
  
-   ##Writing the encrypted contents into the file
+   ## Writing the encrypted contents into the file
    with open(outputfile, 'wb') as file:   
       file.write(ct)
       file.close()
    print(f"The file {inputFile} has been encrypted and contents stored to {outputfile}")
 
-   ##Opening the file and loading the encrypted contents
+   ## Opening the file and loading the encrypted contents
    with open(outputfile, 'rb') as file:
       encrypted = file.read()
       file.close()
 
-   ##Decrypting the file contents
+   ## Decrypting the file contents
    decryptor = cipher.decryptor()
    pt = decryptor.update(encrypted) + decryptor.finalize()
    pt = pt[:-pt[-length]]
  
-   ##Writing the decrypted file contents into the file
+   ## Writing the decrypted file contents into the file
    with open(outputfile,'wb') as file:
       file.write(pt)
       file.close()
@@ -114,36 +115,37 @@ def AES_CBC(key,inputFile,outputfile):
 
 def AES_CTR(key,inputFile,outputfile):
    '''Encrypts the file using AES_CTR mode'''
-   ##Opening the file and loading the original contents
+
+   ## Opening the file and loading the original contents
    with open(inputFile, 'rb') as file:
       original = file.read()
       # length = 16 - (len(original)%16)
       # original += bytes([length])*length
       file.close()
 
-   ##Generating IV and encrypting the file contents
+   ## Generating IV and encrypting the file contents
    iv = os.urandom(16)
    cipher = Cipher(algorithms.AES(key),modes.CTR(iv))
    encryptor = cipher.encryptor()
    ct = encryptor.update(original) + encryptor.finalize()
  
-   ##Writing the encrypted contents into the file
+   ## Writing the encrypted contents into the file
    with open(outputfile, 'wb') as file:   
       file.write(ct)
       file.close()
    print(f"The file {inputFile} has been encrypted and contents stored to {outputfile}")
 
-   ##Opening the file and loading the encrypted contents
+   ## Opening the file and loading the encrypted contents
    with open(outputfile, 'rb') as file:
       encrypted = file.read()
       file.close()
 
-   ##Decrypting the file contents
+   ## Decrypting the file contents
    decryptor = cipher.decryptor()
    pt = decryptor.update(encrypted) + decryptor.finalize()
    # pt = pt[:-pt[-length]]
  
-   ##Writing the decrypted file contents into the file
+   ## Writing the decrypted file contents into the file
    with open(outputfile,'wb') as file:
       file.write(pt)
       file.close()
@@ -152,24 +154,29 @@ def AES_CTR(key,inputFile,outputfile):
 
 def RSA(inputfile,outputfile):
    '''Encrypts the file using RSA 2048 bit key'''
+
+   ## Generating private and public key 
    private_key = rsa.generate_private_key(public_exponent=65537,key_size=2048)
    public_key = private_key.public_key()
 
-   print(private_key.private_bytes(
-      encoding=serialization.Encoding.PEM,
-      format=serialization.PrivateFormat.TraditionalOpenSSL,
-      encryption_algorithm=serialization.NoEncryption()
-      ))
+   ### Prints serialized keys ###
+   # print(private_key.private_bytes(
+   #    encoding=serialization.Encoding.PEM,
+   #    format=serialization.PrivateFormat.TraditionalOpenSSL,
+   #    encryption_algorithm=serialization.NoEncryption()
+   #    ))
 
-   print(public_key.public_bytes(
-      encoding=serialization.Encoding.PEM,
-      format=serialization.PublicFormat.SubjectPublicKeyInfo
-      ))
+   # print(public_key.public_bytes(
+   #    encoding=serialization.Encoding.PEM,
+   #    format=serialization.PublicFormat.SubjectPublicKeyInfo
+   #    ))
 
+   ## Opening the file and loading the original contents
    with open(inputfile, 'rb') as file:
       original = file.read()
       file.close()
 
+   ## Encrypting the file contents using public key
    ciphertext = public_key.encrypt(
       original,
       padding.OAEP(
@@ -178,9 +185,14 @@ def RSA(inputfile,outputfile):
          label=None
          )
       )
-   print('---Encrypted message below---')
-   print(ciphertext)
 
+   ## Writing the encrypted contents into the file   
+   with open(outputfile, 'wb') as file:   
+      file.write(ciphertext)
+      file.close()
+   print(f"The file {inputfile} has been encrypted and contents stored to {outputfile}")
+
+   ## Decrypting the ciphertext using private key
    plaintext = private_key.decrypt(
       ciphertext,
       padding.OAEP(
@@ -191,6 +203,12 @@ def RSA(inputfile,outputfile):
    )
    print('---Decrypted message below---')
    print(plaintext)   
+
+   ## Writing the decrypted file contents into the file
+   with open(outputfile,'wb') as file:
+      file.write(plaintext)
+      file.close()
+   print(f"The file {outputfile} has been decrypted")
 
 
    
@@ -259,6 +277,6 @@ if __name__=='__main__':
    '''''''''''''''''
    Task d
    '''''''''''''''''
-   RSA('abc.txt',largefile)
-
+   RSA('abc.txt',newsmallfile)
+   comparefiles('abc.txt', newsmallfile)
    # os.stat("largefile.txt").st_size
