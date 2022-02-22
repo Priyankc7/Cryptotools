@@ -153,8 +153,35 @@ def AES_CTR(key,inputFile,outputfile):
    print(f"The file {outputfile} has been decrypted")
 
 
+def RSA_chunking(inputfile, outputfile,keysize):
+   '''Encrypts the file using RSA 2048 bit key [with chunking]'''
+
+   ## Generating private and public key 
+   private_key = rsa.generate_private_key(public_exponent=65537,key_size=keysize)
+   public_key = private_key.public_key()
+
+   
+   ''' 
+   Test Block
+   '''
+   ## Calling chunking and encrypting the chunks
+   for block in chunking(inputfile, 256):
+      cipherblock = public_key.encrypt(
+         block,
+         padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+         )
+      )
+      ## Storing all cipherblocks
+      ciphertext += cipherblock
+
+   print(f'THe complete cipher block{ciphertext}')
+   
+
 def RSA(inputfile,outputfile):
-   '''Encrypts the file using RSA 2048 bit key'''
+   '''Encrypts the file using RSA 2048 bit key [limited data to key size]'''
 
    ## Generating private and public key 
    private_key = rsa.generate_private_key(public_exponent=65537,key_size=2048)
@@ -287,9 +314,11 @@ if __name__=='__main__':
    Task d
    '''''''''''''''''
 
-   for i in chunking('abc.txt', 1):
+   for i in chunking('abc.txt', 256):
       print(i)
    # print(chunking('abc.txt',1024))
+
+
 
    RSA('abc.txt',newsmallfile)
    comparefiles('abc.txt', newsmallfile)
