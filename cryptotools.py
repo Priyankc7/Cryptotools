@@ -31,6 +31,7 @@ make sure that you retrieve the times using sufficient precision (e.g., in micro
                                           (v)  signature verification for both files
 '''
 
+from dataclasses import dataclass
 import filecmp
 import os 
 import time
@@ -40,6 +41,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
+from numpy import size
 
 
 def createsmallfile(filename):
@@ -209,6 +211,14 @@ def RSA(inputfile,outputfile):
       file.close()
    print(f"The file {outputfile} has been decrypted")
 
+def chunking(file_name, size):
+   with open (file_name,'rb') as file:
+      while True:
+         data = file.read(size)
+         if not data:
+            break
+         yield data
+   file.close()
 
    
 
@@ -276,6 +286,12 @@ if __name__=='__main__':
    '''''''''''''''''
    Task d
    '''''''''''''''''
+
+   for i in chunking('abc.txt', 1):
+      print(i)
+   # print(chunking('abc.txt',1024))
+
    RSA('abc.txt',newsmallfile)
    comparefiles('abc.txt', newsmallfile)
+
    # os.stat("largefile.txt").st_size
