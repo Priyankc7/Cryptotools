@@ -170,10 +170,17 @@ def RSA_chunking(inputfile,outputfile,keysize):
    public_key = private_key.public_key()
    print(f'The length of public key {public_key.key_size}')
 
+   if(keysize == 2048):
+      encryption_blocksize = 190 # 66 bytes less from the original key size (beyond this it breaks!)
+      decryption_blocksize = 256
+
+   if(keysize == 3072):
+      encryption_blocksize = 318 # 66 bytes less from the original key size (beyond this it breaks!)
+      decryption_blocksize = 384
 
    ## Calling chunking and encrypting the chunks
    ciphertext= bytes()
-   for block in chunking(inputfile, 190):
+   for block in chunking(inputfile, encryption_blocksize):
       # print(len(block))
       cipherblock = public_key.encrypt(
          block,
@@ -192,7 +199,7 @@ def RSA_chunking(inputfile,outputfile,keysize):
    
    ## Decrypting the ciphertext using private key
    plaintext = bytes()
-   for ctblock in chunked(ciphertext,256):
+   for ctblock in chunked(ciphertext,decryption_blocksize):
 
       plainblock = private_key.decrypt(
          ctblock,
@@ -209,9 +216,7 @@ def RSA_chunking(inputfile,outputfile,keysize):
       file.write(plaintext)
       file.close()
    print(f"The file {outputfile} has been decrypted")
-   # print('---Decrypted message below---')
-   # print(plaintext)  
-
+   
 
 def RSA(inputfile,outputfile):
    '''Encrypts the file using RSA 2048 bit key [limited data to key size]'''
@@ -296,53 +301,53 @@ if __name__=='__main__':
    createlargefile(largefile)
    # comparefiles(smallfilename,'smallfile1.txt')
 
-   '''''''''''''''''
-   Task a
-   '''''''''''''''''
-   key = generatekey(16)
-   print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
+   # '''''''''''''''''
+   # Task a
+   # '''''''''''''''''
+   # key = generatekey(16)
+   # print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
 
    
-   start_time = time.time()
-   AES_CBC(key,smallfile,newsmallfile)
-   print("--- %s seconds AES CBC 1MB ---" % (time.time() - start_time))   
-   comparefiles(smallfile,newsmallfile)
+   # start_time = time.time()
+   # AES_CBC(key,smallfile,newsmallfile)
+   # print("--- %s seconds AES CBC 1MB ---" % (time.time() - start_time))   
+   # comparefiles(smallfile,newsmallfile)
 
-   start_time = time.time()
-   AES_CBC(key,largefile,newlargefile)
-   print("--- %s seconds AES CBC 10MB ---" % (time.time() - start_time))
-   comparefiles(largefile,newlargefile)
+   # start_time = time.time()
+   # AES_CBC(key,largefile,newlargefile)
+   # print("--- %s seconds AES CBC 10MB ---" % (time.time() - start_time))
+   # comparefiles(largefile,newlargefile)
 
-   '''''''''''''''''
-   Task b
-   '''''''''''''''''
+   # '''''''''''''''''
+   # Task b
+   # '''''''''''''''''
 
-   start_time = time.time()
-   AES_CTR(key,smallfile,newsmallfile)
-   print("--- %s seconds AES CTR 1MB ---" % (time.time() - start_time))
-   comparefiles(smallfile,newsmallfile)
+   # start_time = time.time()
+   # AES_CTR(key,smallfile,newsmallfile)
+   # print("--- %s seconds AES CTR 1MB ---" % (time.time() - start_time))
+   # comparefiles(smallfile,newsmallfile)
 
-   start_time = time.time()
-   AES_CTR(key,largefile,newlargefile)
-   print("--- %s seconds AES CTR 10MB ---" % (time.time() - start_time))
-   comparefiles(largefile,newlargefile)
+   # start_time = time.time()
+   # AES_CTR(key,largefile,newlargefile)
+   # print("--- %s seconds AES CTR 10MB ---" % (time.time() - start_time))
+   # comparefiles(largefile,newlargefile)
 
 
-   '''''''''''''''''
-   Task c
-   '''''''''''''''''
-   key = generatekey(32)
-   print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
+   # '''''''''''''''''
+   # Task c
+   # '''''''''''''''''
+   # key = generatekey(32)
+   # print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
 
-   start_time = time.time()
-   AES_CTR(key,smallfile,newsmallfile)
-   print("--- %s seconds AES CTR 1MB ---" % (time.time() - start_time))
-   comparefiles(smallfile,newsmallfile)
+   # start_time = time.time()
+   # AES_CTR(key,smallfile,newsmallfile)
+   # print("--- %s seconds AES CTR 1MB ---" % (time.time() - start_time))
+   # comparefiles(smallfile,newsmallfile)
 
-   start_time = time.time()
-   AES_CTR(key,largefile,newlargefile)
-   print("--- %s seconds AES CTR 10MB ---" % (time.time() - start_time))
-   comparefiles(largefile,newlargefile)
+   # start_time = time.time()
+   # AES_CTR(key,largefile,newlargefile)
+   # print("--- %s seconds AES CTR 10MB ---" % (time.time() - start_time))
+   # comparefiles(largefile,newlargefile)
 
 
    '''''''''''''''''
@@ -350,7 +355,7 @@ if __name__=='__main__':
    '''''''''''''''''
    start_time = time.time()
    RSA_chunking(smallfile, newsmallfile, 2048)
-   print("--- %s seconds RSA 1MB ---" % (time.time() - start_time))
+   print("--- %s seconds RSA 1MB with 2048 key size ---" % (time.time() - start_time))
    comparefiles(smallfile, newsmallfile)
    
    '''''''''''''''''
@@ -358,7 +363,7 @@ if __name__=='__main__':
    '''''''''''''''''
    start_time = time.time()
    RSA_chunking(smallfile, newsmallfile, 3072)
-   print("--- %s seconds RSA 1MB ---" % (time.time() - start_time))
+   print("--- %s seconds RSA 1MB with 3072 key size ---" % (time.time() - start_time))
    comparefiles(smallfile, newsmallfile)
    
    # os.stat("largefile.txt").st_size
