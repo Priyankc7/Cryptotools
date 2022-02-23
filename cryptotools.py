@@ -31,9 +31,8 @@ make sure that you retrieve the times using sufficient precision (e.g., in micro
                                           (v)  signature verification for both files
 '''
 
-from dataclasses import dataclass
+
 import filecmp
-from msilib.schema import Binary
 import os 
 import time
 import base64
@@ -42,7 +41,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-from numpy import size
+
 
 
 def createsmallfile(filename):
@@ -366,4 +365,9 @@ if __name__=='__main__':
    print("--- %s seconds RSA 1MB with 3072 key size ---" % (time.time() - start_time))
    comparefiles(smallfile, newsmallfile)
    
+
+   '''''''''''''''''
+   Task f
+   '''''''''''''''''
+
    # os.stat("largefile.txt").st_size
