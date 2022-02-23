@@ -38,7 +38,7 @@ import time
 import base64
 import binascii
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import rsa, dsa
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
@@ -48,14 +48,14 @@ def createsmallfile(filename):
    '''Creates small file'''
    f = open(filename,"wb")
    # f.write(b"Cryptography")
-   f.seek(1048576)
+   f.seek(8000)
    f.write(b"\0")
    f.close()
 
 def createmediumfile(filename):
    '''Creates large file'''
    f = open(filename,"wb")
-   f.seek(10485760)
+   f.seek(1048576)
    f.write(b"\0")
    f.close()
 
@@ -170,11 +170,11 @@ def RSA_chunking(inputfile,outputfile,keysize):
    print(f'The length of public key {public_key.key_size}')
 
    if(keysize == 2048):
-      encryption_blocksize = 190 # 66 bytes less from the original key size (beyond this it breaks!)
+      encryption_blocksize = 190 # 66 bytes less from the original key size due to padding (beyond this it breaks!)
       decryption_blocksize = 256
 
    if(keysize == 3072):
-      encryption_blocksize = 318 # 66 bytes less from the original key size (beyond this it breaks!)
+      encryption_blocksize = 318 # 66 bytes less from the original key size due to padding (beyond this it breaks!)
       decryption_blocksize = 384
 
    ## Calling chunking and encrypting the chunks
@@ -194,12 +194,14 @@ def RSA_chunking(inputfile,outputfile,keysize):
       # print(type(cipherblock))
 
    # print(f'The complete cipher block{ciphertext}')
+   with open(outputfile, 'wb') as file:   
+      file.write(ciphertext)
+      file.close()
    print(f"The file {inputfile} has been encrypted and contents stored to {outputfile}")
    
-   ## Decrypting the ciphertext using private key
+   ## Decrypting the ciphertext using private key to be writtten to output file
    plaintext = bytes()
    for ctblock in chunked(ciphertext,decryption_blocksize):
-
       plainblock = private_key.decrypt(
          ctblock,
          padding.OAEP(
@@ -289,27 +291,53 @@ def chunked(source,size):
       yield source[i:i+size]   
 
 
+def SHA_256_SHA_512_SHA3_256 (inputfile):
+
+   ## Opening the file and loading the original contents
+   with open(inputfile, 'rb') as file:
+      original = file.read()
+      file.close()
+
+   digest = hashes.Hash(hashes.SHA256())
+   digest.update(original)
+   print(f'The generated SHA-256 hash is : {binascii.hexlify(digest.finalize())}')
+
+   digest = hashes.Hash(hashes.SHA512())
+   digest.update(original)
+   print(f'The generated SHA-512 hash is : {binascii.hexlify(digest.finalize())}')
+   
+   digest = hashes.Hash(hashes.SHA3_256())
+   digest.update(original)
+   print(f'The generated SHA3-256 hash is : {binascii.hexlify(digest.finalize())}')
+
+def DSA(inputfile):
+   pass
+
+
 if __name__=='__main__':
-   smallfile='smallfile.txt'
+   smallfile = 'smallfile.txt'
    newsmallfile = 'newsmallfile.txt'
-   largefile='largefile.txt'
-   newlargefile='newlargefile.txt'
+   mediumfile = 'mediumfile.txt'
+   newmediumfile = 'newmediumfile'
+   largefile = 'largefile.txt'
+   newlargefile = 'newlargefile.txt'
 
    createsmallfile(smallfile)
    # createsmallfile('smallfile1.txt')
+   createmediumfile(mediumfile)
    createlargefile(largefile)
    # comparefiles(smallfilename,'smallfile1.txt')
 
    # '''''''''''''''''
    # Task a
    # '''''''''''''''''
-   # key = generatekey(16)
+   # key = generatekey(16) #16 bytes key = 128 bits key
    # print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
 
    
    # start_time = time.time()
    # AES_CBC(key,smallfile,newsmallfile)
-   # print("--- %s seconds AES CBC 1MB ---" % (time.time() - start_time))   
+   # print("--- %s seconds AES CBC 1KB ---" % (time.time() - start_time))   
    # comparefiles(smallfile,newsmallfile)
 
    # start_time = time.time()
@@ -323,7 +351,7 @@ if __name__=='__main__':
 
    # start_time = time.time()
    # AES_CTR(key,smallfile,newsmallfile)
-   # print("--- %s seconds AES CTR 1MB ---" % (time.time() - start_time))
+   # print("--- %s seconds AES CTR 1KB ---" % (time.time() - start_time))
    # comparefiles(smallfile,newsmallfile)
 
    # start_time = time.time()
@@ -335,12 +363,12 @@ if __name__=='__main__':
    # '''''''''''''''''
    # Task c
    # '''''''''''''''''
-   # key = generatekey(32)
+   # key = generatekey(32) #32 bytes key = 256 bits key
    # print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
 
    # start_time = time.time()
    # AES_CTR(key,smallfile,newsmallfile)
-   # print("--- %s seconds AES CTR 1MB ---" % (time.time() - start_time))
+   # print("--- %s seconds AES CTR 1KB ---" % (time.time() - start_time))
    # comparefiles(smallfile,newsmallfile)
 
    # start_time = time.time()
@@ -349,25 +377,38 @@ if __name__=='__main__':
    # comparefiles(largefile,newlargefile)
 
 
-   '''''''''''''''''
-   Task d
-   '''''''''''''''''
-   start_time = time.time()
-   RSA_chunking(smallfile, newsmallfile, 2048)
-   print("--- %s seconds RSA 1MB with 2048 key size ---" % (time.time() - start_time))
-   comparefiles(smallfile, newsmallfile)
+   # '''''''''''''''''
+   # Task d
+   # '''''''''''''''''
+   # start_time = time.time()
+   # RSA_chunking(smallfile, newsmallfile, 2048)
+   # print("--- %s seconds RSA 1KB with 2048 key size ---" % (time.time() - start_time))
+   # comparefiles(smallfile, newsmallfile)
    
-   '''''''''''''''''
-   Task e
-   '''''''''''''''''
-   start_time = time.time()
-   RSA_chunking(smallfile, newsmallfile, 3072)
-   print("--- %s seconds RSA 1MB with 3072 key size ---" % (time.time() - start_time))
-   comparefiles(smallfile, newsmallfile)
+   # start_time = time.time()
+   # RSA_chunking(largefile, newlargefile, 2048)
+   # print("--- %s seconds RSA 1KB with 2048 key size ---" % (time.time() - start_time))
+   # comparefiles(largefile, newlargefile)
+   
+
+   # '''''''''''''''''
+   # Task e
+   # '''''''''''''''''
+   # start_time = time.time()
+   # RSA_chunking(smallfile, newsmallfile, 3072)
+   # print("--- %s seconds RSA 1MB with 3072 key size ---" % (time.time() - start_time))
+   # comparefiles(smallfile, newsmallfile)
    
 
    '''''''''''''''''
    Task f
    '''''''''''''''''
+   SHA_256_SHA_512_SHA3_256(smallfile)
+
+   '''''''''''''''''
+   Task g
+   '''''''''''''''''
+
+
 
    # os.stat("largefile.txt").st_size
