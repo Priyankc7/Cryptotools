@@ -33,6 +33,7 @@ make sure that you retrieve the times using sufficient precision (e.g., in micro
 
 from dataclasses import dataclass
 import filecmp
+from msilib.schema import Binary
 import os 
 import time
 import base64
@@ -153,19 +154,19 @@ def AES_CTR(key,inputFile,outputfile):
    print(f"The file {outputfile} has been decrypted")
 
 
-def RSA_chunking(inputfile, outputfile,keysize):
+def RSA_chunking(inputfile,outputfile,keysize):
    '''Encrypts the file using RSA 2048 bit key [with chunking]'''
 
    ## Generating private and public key 
    private_key = rsa.generate_private_key(public_exponent=65537,key_size=keysize)
    public_key = private_key.public_key()
+   print(f'The length of public key {public_key.key_size}')
 
-   
-   ''' 
-   Test Block
-   '''
+
    ## Calling chunking and encrypting the chunks
-   for block in chunking(inputfile, 256):
+   ciphertext= bytes()
+   for block in chunking(inputfile, 190):
+      # print(len(block))
       cipherblock = public_key.encrypt(
          block,
          padding.OAEP(
@@ -176,9 +177,33 @@ def RSA_chunking(inputfile, outputfile,keysize):
       )
       ## Storing all cipherblocks
       ciphertext += cipherblock
+      # print(type(cipherblock))
 
-   print(f'THe complete cipher block{ciphertext}')
+   # print(f'The complete cipher block{ciphertext}')
+   print(f"The file {inputfile} has been encrypted and contents stored to {outputfile}")
    
+   ## Decrypting the ciphertext using private key
+   plaintext = bytes()
+   for ctblock in chunked(ciphertext,256):
+
+      plainblock = private_key.decrypt(
+         ctblock,
+         padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+         )
+      )
+      plaintext += plainblock
+   
+   ## Writing the decrypted file contents into the file
+   with open(outputfile,'wb') as file:
+      file.write(plaintext)
+      file.close()
+   print(f"The file {outputfile} has been decrypted")
+   # print('---Decrypted message below---')
+   # print(plaintext)  
+
 
 def RSA(inputfile,outputfile):
    '''Encrypts the file using RSA 2048 bit key [limited data to key size]'''
@@ -239,7 +264,7 @@ def RSA(inputfile,outputfile):
    print(f"The file {outputfile} has been decrypted")
 
 def chunking(file_name, size):
-   with open (file_name,'rb') as file:
+   with open(file_name,'rb') as file:
       while True:
          data = file.read(size)
          if not data:
@@ -247,7 +272,9 @@ def chunking(file_name, size):
          yield data
    file.close()
 
-   
+def chunked(source,size):
+   for i in range(0,len(source),size):
+      yield source[i:i+size]   
 
 
 if __name__=='__main__':
@@ -313,14 +340,9 @@ if __name__=='__main__':
    '''''''''''''''''
    Task d
    '''''''''''''''''
-
-   for i in chunking('abc.txt', 256):
-      print(i)
-   # print(chunking('abc.txt',1024))
-
-
-
-   RSA('abc.txt',newsmallfile)
-   comparefiles('abc.txt', newsmallfile)
+   start_time = time.time()
+   RSA_chunking(smallfile, newsmallfile, 2048)
+   comparefiles(smallfile, newsmallfile)
+   print("--- %s seconds RSA 1KB ---" % (time.time() - start_time))
 
    # os.stat("largefile.txt").st_size
