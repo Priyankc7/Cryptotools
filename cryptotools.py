@@ -41,6 +41,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.asymmetric import rsa, dsa
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
+from rsa import PublicKey
 
 
 
@@ -292,6 +293,7 @@ def chunked(source,size):
 
 
 def SHA_256_SHA_512_SHA3_256 (inputfile):
+   '''Generates SHA-256, SHA-512 and SHA3-256 hashes of the file'''
 
    ## Opening the file and loading the original contents
    with open(inputfile, 'rb') as file:
@@ -310,8 +312,35 @@ def SHA_256_SHA_512_SHA3_256 (inputfile):
    digest.update(original)
    print(f'The generated SHA3-256 hash is : {binascii.hexlify(digest.finalize())}')
 
-def DSA(inputfile):
-   pass
+def DSA(inputfile, keysize):
+   '''Signs the files using the key and verifies the corresponding signatures'''
+   
+   private_key = dsa.generate_private_key(key_size=keysize, )
+   public_key = private_key.public_key()
+   
+   ### Prints serialized keys ###
+   # print(private_key.private_bytes(
+   #    encoding=serialization.Encoding.PEM,
+   #    format=serialization.PrivateFormat.TraditionalOpenSSL,
+   #    encryption_algorithm=serialization.NoEncryption()
+   #    )
+   # )
+
+   # print(public_key.public_bytes(
+   #    encoding=serialization.Encoding.PEM,
+   #    format=serialization.PublicFormat.SubjectPublicKeyInfo
+   # ))
+
+   ## Opening the file and loading the original contents
+   with open(inputfile, 'rb') as file:
+      original = file.read()
+      file.close()
+
+   signature = private_key.sign(original,hashes.SHA256())
+   # print(binascii.hexlify(signature))
+
+   if public_key.verify(signature,original,hashes.SHA256()) == None:
+      print('Signature Verified!')
 
 
 if __name__=='__main__':
@@ -409,6 +438,14 @@ if __name__=='__main__':
    Task g
    '''''''''''''''''
 
+   DSA(smallfile,2048)
+   DSA(largefile,2048)
 
+   '''''''''''''''''
+   Task h
+   '''''''''''''''''
 
+   DSA(smallfile,3072)
+   DSA(largefile,3072)
+   
    # os.stat("largefile.txt").st_size
