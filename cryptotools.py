@@ -41,7 +41,6 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.asymmetric import rsa, dsa
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-from rsa import PublicKey
 
 
 
@@ -356,55 +355,55 @@ if __name__=='__main__':
    createlargefile(largefile)
 
 
-   # '''''''''''''''''
-   # Task a
-   # '''''''''''''''''
-   # print('TASK A')
-   # key = generatekey(16) #16 bytes key = 128 bits key
-   # print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
+   '''''''''''''''''
+   Task a
+   '''''''''''''''''
+   print('TASK A')
+   key = generatekey(16) #16 bytes key = 128 bits key
+   print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
 
    
-   # start_time = time.time()
-   # AES_CBC(key,smallfile,newsmallfile)
-   # print("--- %s seconds AES CBC 1KB ---" % (time.time() - start_time))   
-   # comparefiles(smallfile,newsmallfile)
+   start_time = time.time()
+   AES_CBC(key,smallfile,newsmallfile)
+   print("--- %s seconds AES CBC 1KB ---" % (time.time() - start_time))   
+   comparefiles(smallfile,newsmallfile)
 
-   # start_time = time.time()
-   # AES_CBC(key,largefile,newlargefile)
-   # print("--- %s seconds AES CBC 10MB ---" % (time.time() - start_time))
-   # comparefiles(largefile,newlargefile)
+   start_time = time.time()
+   AES_CBC(key,largefile,newlargefile)
+   print("--- %s seconds AES CBC 10MB ---" % (time.time() - start_time))
+   comparefiles(largefile,newlargefile)
 
-   # '''''''''''''''''
-   # Task b
-   # '''''''''''''''''
-   # print('TASK B')
-   # start_time = time.time()
-   # AES_CTR(key,smallfile,newsmallfile)
-   # print("--- %s seconds AES CTR 1KB ---" % (time.time() - start_time))
-   # comparefiles(smallfile,newsmallfile)
+   '''''''''''''''''
+   Task b
+   '''''''''''''''''
+   print('TASK B')
+   start_time = time.time()
+   AES_CTR(key,smallfile,newsmallfile)
+   print("--- %s seconds AES CTR 1KB ---" % (time.time() - start_time))
+   comparefiles(smallfile,newsmallfile)
 
-   # start_time = time.time()
-   # AES_CTR(key,largefile,newlargefile)
-   # print("--- %s seconds AES CTR 10MB ---" % (time.time() - start_time))
-   # comparefiles(largefile,newlargefile)
+   start_time = time.time()
+   AES_CTR(key,largefile,newlargefile)
+   print("--- %s seconds AES CTR 10MB ---" % (time.time() - start_time))
+   comparefiles(largefile,newlargefile)
 
 
-   # '''''''''''''''''
-   # Task c
-   # '''''''''''''''''
-   # print('TASK C')
-   # key = generatekey(32) #32 bytes key = 256 bits key
-   # print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
+   '''''''''''''''''
+   Task c
+   '''''''''''''''''
+   print('TASK C')
+   key = generatekey(32) #32 bytes key = 256 bits key
+   print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
 
-   # start_time = time.time()
-   # AES_CTR(key,smallfile,newsmallfile)
-   # print("--- %s seconds AES CTR 1KB ---" % (time.time() - start_time))
-   # comparefiles(smallfile,newsmallfile)
+   start_time = time.time()
+   AES_CTR(key,smallfile,newsmallfile)
+   print("--- %s seconds AES CTR 1KB ---" % (time.time() - start_time))
+   comparefiles(smallfile,newsmallfile)
 
-   # start_time = time.time()
-   # AES_CTR(key,largefile,newlargefile)
-   # print("--- %s seconds AES CTR 10MB ---" % (time.time() - start_time))
-   # comparefiles(largefile,newlargefile)
+   start_time = time.time()
+   AES_CTR(key,largefile,newlargefile)
+   print("--- %s seconds AES CTR 10MB ---" % (time.time() - start_time))
+   comparefiles(largefile,newlargefile)
 
 
    '''''''''''''''''
