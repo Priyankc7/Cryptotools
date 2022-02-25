@@ -352,10 +352,9 @@ if __name__=='__main__':
    newlargefile = 'newlargefile.txt'
 
    createsmallfile(smallfile)
-   # createsmallfile('smallfile1.txt')
    createmediumfile(mediumfile)
    createlargefile(largefile)
-   # comparefiles(smallfilename,'smallfile1.txt')
+
 
    # '''''''''''''''''
    # Task a
