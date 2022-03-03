@@ -142,9 +142,11 @@ def AES_CTR(key,inputFile,outputfile):
 
    ## Generating IV and encrypting the file contents
    iv = os.urandom(16)
+   start_time = time.perf_counter_ns()
    cipher = Cipher(algorithms.AES(key),modes.CTR(iv))
    encryptor = cipher.encryptor()
    ct = encryptor.update(original) + encryptor.finalize()
+   get_time(start_time)
  
    ## Writing the encrypted contents into the file
    with open(outputfile, 'wb') as file:   
@@ -158,8 +160,11 @@ def AES_CTR(key,inputFile,outputfile):
       file.close()
 
    ## Decrypting the file contents
+   print('\nDecrypting file--------->')
+   start_time = time.perf_counter_ns()
    decryptor = cipher.decryptor()
    pt = decryptor.update(encrypted) + decryptor.finalize()
+   get_time(start_time)
    # pt = pt[:-pt[-length]]
  
    ## Writing the decrypted file contents into the file
@@ -172,10 +177,14 @@ def AES_CTR(key,inputFile,outputfile):
 def RSA_chunking(inputfile,outputfile,keysize):
    '''Encrypts the file using RSA 2048 bit key [with chunking]'''
 
-   ## Generating private and public key 
+   ## Generating private and public key
+   print(f'Generating {keysize} bit key--------->')
+   start_time = time.perf_counter_ns() 
    private_key = rsa.generate_private_key(public_exponent=65537,key_size=keysize)
    public_key = private_key.public_key()
-   print(f'The length of public key {public_key.key_size}')
+   get_time(start_time)
+   # print(f'The length of public key {public_key.key_size}')
+
 
    if(keysize == 2048):
       encryption_blocksize = 190 # 66 bytes less from the original key size due to padding (beyond this it breaks!)
@@ -186,6 +195,8 @@ def RSA_chunking(inputfile,outputfile,keysize):
       decryption_blocksize = 384
 
    ## Calling chunking and encrypting the chunks
+   print('\nEncrypting file--------->')
+   start_time = time.perf_counter_ns() 
    ciphertext= bytes()
    for block in chunking(inputfile, encryption_blocksize):
       # print(len(block))
@@ -200,7 +211,7 @@ def RSA_chunking(inputfile,outputfile,keysize):
       ## Storing all cipherblocks
       ciphertext += cipherblock
       # print(type(cipherblock))
-
+   get_time(start_time)
    # print(f'The complete cipher block{ciphertext}')
    with open(outputfile, 'wb') as file:   
       file.write(ciphertext)
@@ -208,6 +219,8 @@ def RSA_chunking(inputfile,outputfile,keysize):
    print(f"The file {inputfile} has been encrypted and contents stored to {outputfile}")
    
    ## Decrypting the ciphertext using private key to be writtten to output file
+   print('\nDecrypting file--------->')
+   start_time = time.perf_counter_ns() 
    plaintext = bytes()
    for ctblock in chunked(ciphertext,decryption_blocksize):
       plainblock = private_key.decrypt(
@@ -219,7 +232,7 @@ def RSA_chunking(inputfile,outputfile,keysize):
          )
       )
       plaintext += plainblock
-   
+   get_time(start_time)
    ## Writing the decrypted file contents into the file
    with open(outputfile,'wb') as file:
       file.write(plaintext)
@@ -307,23 +320,32 @@ def SHA_256_SHA_512_SHA3_256 (inputfile):
       original = file.read()
       file.close()
 
+   start_time = time.perf_counter_ns() 
    digest = hashes.Hash(hashes.SHA256())
    digest.update(original)
-   print(f'The generated SHA-256 hash is : {binascii.hexlify(digest.finalize())}')
+   print(f'\nThe generated SHA-256 hash is : {binascii.hexlify(digest.finalize())}')
+   get_time(start_time)
 
+   start_time = time.perf_counter_ns() 
    digest = hashes.Hash(hashes.SHA512())
    digest.update(original)
-   print(f'The generated SHA-512 hash is : {binascii.hexlify(digest.finalize())}')
-   
+   print(f'\nThe generated SHA-512 hash is : {binascii.hexlify(digest.finalize())}')
+   get_time(start_time)
+
+   start_time = time.perf_counter_ns() 
    digest = hashes.Hash(hashes.SHA3_256())
    digest.update(original)
-   print(f'The generated SHA3-256 hash is : {binascii.hexlify(digest.finalize())}')
+   print(f'\nThe generated SHA3-256 hash is : {binascii.hexlify(digest.finalize())}')
+   get_time(start_time)
 
 def DSA(inputfile, keysize):
    '''Signs the files using the key and verifies the corresponding signatures'''
    
+   print(f'Generating {keysize} bit key--------->')
+   start_time = time.perf_counter_ns() 
    private_key = dsa.generate_private_key(key_size=keysize, )
    public_key = private_key.public_key()
+   get_time(start_time)
    
    ### Prints serialized keys ###
    # print(private_key.private_bytes(
@@ -343,17 +365,22 @@ def DSA(inputfile, keysize):
       original = file.read()
       file.close()
 
+   print(f'\nGenerating signature--------->')
+   start_time = time.perf_counter_ns() 
    signature = private_key.sign(original,hashes.SHA256())
-   # print(binascii.hexlify(signature))
+   print(f'The signature is - {binascii.hexlify(signature)}')
+   get_time(start_time)
 
+   print(f'\nVerifying signature--------->')
+   start_time = time.perf_counter_ns()
    if public_key.verify(signature,original,hashes.SHA256()) == None:
       print('Signature Verified!')
+   get_time(start_time)
 
 def get_time(start_time):
    nano_second = time.perf_counter_ns() - start_time
    micro_second = nano_second/1000
    seconds = str(timedelta(microseconds=micro_second))
-   # print("--- %s Time taken to generate 128 bit key ---" % (time.perf_counter() - start_time))
    print(f'Time taken = {nano_second} nano seconds = {micro_second} Micro seconds = {seconds} Seconds')
 
 
@@ -361,7 +388,7 @@ if __name__=='__main__':
    smallfile = 'smallfile.txt'
    newsmallfile = 'newsmallfile.txt'
    mediumfile = 'mediumfile.txt'
-   newmediumfile = 'newmediumfile'
+   newmediumfile = 'newmediumfile.txt'
    largefile = 'largefile.txt'
    newlargefile = 'newlargefile.txt'
 
@@ -371,7 +398,7 @@ if __name__=='__main__':
 
 
    '''''''''''''''''
-   Task a
+   Task A
    '''''''''''''''''
    print('----------------TASK A------------------')
    print('Generating 128 bit key--------->')
@@ -386,93 +413,110 @@ if __name__=='__main__':
    print('Verifying files--------->')
    comparefiles(smallfile,newsmallfile)
 
-   start_time = time.time()
-   print('File size 10MB')
+ 
+   print('\nEncrypting 10MB file using AES CBC--------->')
    AES_CBC(key,largefile,newlargefile)
-   print("--- %s seconds AES CBC 10MB ---" % (time.time() - start_time))
+   print('Verifying files--------->')
    comparefiles(largefile,newlargefile)
 
    '''''''''''''''''
-   Task b
+   Task B
    '''''''''''''''''
    print('----------------TASK B------------------')
-   start_time = time.time()
+   print('Generating 128 bit key--------->')
+   start_time = time.perf_counter_ns()
+   key = generatekey(16) #16 bytes key = 128 bits key
+   get_time(start_time)
+   print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
+
+   
+   print('\nEncrypting 1KB file using AES CTR--------->')
    AES_CTR(key,smallfile,newsmallfile)
-   print("--- %s seconds AES CTR 1KB ---" % (time.time() - start_time))
+   print('Verifying files--------->')
    comparefiles(smallfile,newsmallfile)
 
-   start_time = time.time()
+   print('\nEncrypting 10MB file using AES CTR--------->')
    AES_CTR(key,largefile,newlargefile)
-   print("--- %s seconds AES CTR 10MB ---" % (time.time() - start_time))
+   print('Verifying files--------->')
    comparefiles(largefile,newlargefile)
 
 
-   # '''''''''''''''''
-   # Task c
-   # '''''''''''''''''
-   # print('TASK C')
-   # key = generatekey(32) #32 bytes key = 256 bits key
-   # print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
+   '''''''''''''''''
+   Task C
+   '''''''''''''''''
+   print('----------------TASK C------------------')
+   print('Generating 256 bit key--------->')
+   start_time = time.perf_counter_ns()
+   key = generatekey(32) #32 bytes key = 256 bits key
+   get_time(start_time)
+   print(f'The key is : {binascii.hexlify(key)}') #string is prefixed with the ‘b,’ which says that it produces byte data type instead of the string data type
 
-   # start_time = time.time()
-   # AES_CTR(key,smallfile,newsmallfile)
-   # print("--- %s seconds AES CTR 1KB ---" % (time.time() - start_time))
-   # comparefiles(smallfile,newsmallfile)
+   print('\nEncrypting 1KB file using AES CTR--------->')
+   AES_CTR(key,smallfile,newsmallfile)
+   print('Verifying files--------->')
+   comparefiles(smallfile,newsmallfile)
 
-   # start_time = time.time()
-   # AES_CTR(key,largefile,newlargefile)
-   # print("--- %s seconds AES CTR 10MB ---" % (time.time() - start_time))
-   # comparefiles(largefile,newlargefile)
+   print('\nEncrypting 10MB file using AES CTR--------->')
+   AES_CTR(key,largefile,newlargefile)
+   print('Verifying files--------->')
+   comparefiles(largefile,newlargefile)
 
 
-   # '''''''''''''''''
-   # Task d
-   # '''''''''''''''''
-   # print('TASK D')
-   # start_time = time.time()
-   # RSA_chunking(smallfile, newsmallfile, 2048)
-   # print("--- %s seconds RSA 1KB with 2048 key size ---" % (time.time() - start_time))
-   # comparefiles(smallfile, newsmallfile)
+   '''''''''''''''''
+   Task D
+   '''''''''''''''''
+   print('----------------TASK D------------------')
+   print('\nEncrypting 1KB file using RSA 2048 bit key--------->')
+   RSA_chunking(smallfile, newsmallfile, 2048)
+   print('Verifying files--------->')
+   comparefiles(smallfile, newsmallfile)
    
-   # start_time = time.time()
-   # RSA_chunking(mediumfile, newmediumfile, 2048)
-   # print("--- %s seconds RSA 1MB with 2048 key size ---" % (time.time() - start_time))
-   # comparefiles(mediumfile, newmediumfile)
-   
-
-   # '''''''''''''''''
-   # Task e
-   # '''''''''''''''''
-   # print('TASK E')
-   # start_time = time.time()
-   # RSA_chunking(smallfile, newsmallfile, 3072)
-   # print("--- %s seconds RSA 1KB with 3072 key size ---" % (time.time() - start_time))
-   # comparefiles(smallfile, newsmallfile)
-   
-   # start_time = time.time()
-   # RSA_chunking(mediumfile, newmediumfile, 3072)
-   # print("--- %s seconds RSA 1MB with 3072 key size ---" % (time.time() - start_time))
-   # comparefiles(mediumfile, newmediumfile)
+   print('\nEncrypting 1MB file using RSA 2048 bit key--------->')
+   RSA_chunking(mediumfile, newmediumfile, 2048)
+   print('Verifying files--------->')
+   comparefiles(mediumfile, newmediumfile)
    
 
-   # '''''''''''''''''
-   # Task f
-   # '''''''''''''''''
-   # print('TASK F')
-   # SHA_256_SHA_512_SHA3_256(smallfile)
-
-   # '''''''''''''''''
-   # Task g
-   # '''''''''''''''''
-   # print('\nTASK G')
-   # DSA(smallfile,2048)
-   # DSA(largefile,2048)
-
-   # '''''''''''''''''
-   # Task h
-   # '''''''''''''''''
-   # print('\nTASK H')
-   # DSA(smallfile,3072)
-   # DSA(largefile,3072)
+   '''''''''''''''''
+   Task E
+   '''''''''''''''''
+   print('----------------TASK E------------------')
+   print('\nEncrypting 1KB file using RSA 3072 bit key--------->')
+   RSA_chunking(smallfile, newsmallfile, 3072)
+   print('Verifying files--------->')
+   comparefiles(smallfile, newsmallfile)
    
-   # os.stat("largefile.txt").st_size
+   print('\nEncrypting 1MB file using RSA 3072 bit key--------->')
+   RSA_chunking(mediumfile, newmediumfile, 3072)
+   print('Verifying files--------->')
+   comparefiles(mediumfile, newmediumfile)
+   
+
+   '''''''''''''''''
+   Task F
+   '''''''''''''''''
+   print('----------------TASK F------------------')
+   print('\nGenerating hashes for 1KB file--------->')
+   SHA_256_SHA_512_SHA3_256(smallfile)
+      
+   print('\nGenerating hashes for 10MB file--------->')
+   SHA_256_SHA_512_SHA3_256(largefile)
+
+   '''''''''''''''''
+   Task G
+   '''''''''''''''''
+   print('\n----------------TASK G------------------')
+   print('\nSigning 1KB file using DSA 2048 bit key--------->')
+   DSA(smallfile,2048)
+   print('\nSigning 10MB file using DSA 2048 bit key--------->')
+   DSA(largefile,2048)
+
+   '''''''''''''''''
+   Task H
+   '''''''''''''''''
+   print('\n----------------TASK H------------------')
+   print('\nSigning 1KB file using DSA 3072 bit key--------->')
+   DSA(smallfile,3072)
+   print('\nSigning 10MB file using DSA 3072 bit key--------->')
+   DSA(largefile,3072)
+   
