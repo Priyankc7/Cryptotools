@@ -71,7 +71,7 @@ def comparefiles(file1,file2):
    '''Compares two files'''
    filecmp.clear_cache()
    if (filecmp.cmp(file1,file2,shallow=True)):
-      print(f'The files {file1} and {file2} are verified!\n\n')
+      print(f"The files {file1} and {file2} are verified!\n")
 
 def generatekey(keysize):
    '''
